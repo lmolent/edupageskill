@@ -1,0 +1,25 @@
+{
+  "name": "edupage",
+  "description": "Získava údaje z EduPage (rozvrh, známky, oznamy) pre zadané školy a deti.",
+  "entry": "get_edupage.py",
+  "metadata": {
+    "openclaw": {
+      "primaryEnv": [
+        "USERNAME",
+        "PASSWORD",
+        "SUBDOMAINS"
+      ],
+      "category": "Education",
+      "emoji": "🎓"
+    }
+  },
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "date": {
+        "type": "string",
+        "description": "Dátum vo formáte DD.MM.YYYY (napr. 20.02.2026) pre zobrazenie rozvrhu."
+      }
+    }
+  }
+}

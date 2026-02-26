@@ -15,7 +15,8 @@ Pri práci s EduPage skriptom dodržiavaj tieto pravidlá:
 - **Prehľad dňa:** Spusti `uv run {skillDir}/get_edupage.py` a zhrň najdôležitejšie zmeny (nové známky alebo odpadnuté hodiny).
 - **Kontrola rozvrhu na konkrétny deň:** Spusti `uv run {skillDir}/get_edupage.py --date DD.MM.YYYY` na zobrazenie rozvrhu pre konkrétny dátum.
 - **Kontrola známok:** Zameraj sa na posledné záznamy a upozorni na prípadné zhoršenie alebo dôležité písomky.
-- **Správa .env:** Pomôž používateľovi aktualizovať prihlasovacie údaje pri zmene hesla.
+- **Konfigurácia:** Pre správnu funkčnosť nastav premenné `USERNAME`, `PASSWORD` a `SUBDOMAINS` v systéme OpenClaw (alebo cez `.env` pre lokálny vývoj).
+- **Správa .env:** Ak nepoužívaš OpenClaw konfiguráciu, pomôž používateľovi aktualizovať .env súbor pri zmene údajov.
 
 ## Príklady promptov
 
