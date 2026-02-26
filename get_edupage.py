@@ -24,7 +24,10 @@ def get_credentials():
     password = os.getenv("PASSWORD")
     
     if not all([username, password]):
-        raise ValueError("Chýbajúce prihlasovacie údaje (USERNAME, PASSWORD) v .env súbore.")
+        raise ValueError(
+            "Chýbajúce prihlasovacie údaje (USERNAME, PASSWORD).\n"
+            "TIP: Vytvor súbor .env podľa .env.example alebo použi 'clawhub setup' na konfiguráciu."
+        )
         
     return username, password
 
