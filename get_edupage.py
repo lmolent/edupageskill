@@ -168,9 +168,89 @@ def show_notifications(edupage_instance):
         plain_text = h.handle(notification.text)
         print(plain_text.strip())
 
+def show_my_lunch(edupage_instance, student_id, target_date=None):
+    """Fetches and prints the ordered lunch for a specific date."""
+    print("\n🍽️ OBJEDNANÝ OBED")
+    
+    if not target_date:
+        target_date = datetime.date.today()
+    
+    print(f"\n📅 Obed pre: {target_date.strftime('%d.%m.%Y')} ({target_date.strftime('%A')})")
+    
+    # Ošetrenie víkendov - jedlo nie je dostupné
+    if target_date.weekday() >= 5:  # 5 = Sobota, 6 = Nedeľa
+        print("\n❌ Žiadne jedlo pre víkendové dni.")
+        return
+    
+    try:
+        # Načítame jedlá pre daný deň
+        meals = edupage_instance.get_meals(target_date)
+        
+        if not meals:
+            print("\n❌ Žiadne jedlá pre tento deň.")
+            return
+        
+        # Získame obed (lunch je Meal objekt)
+        lunch = getattr(meals, 'lunch', None)
+        
+        if not lunch:
+            print("\n❌ Žiadne jedlo pre tento deň.")
+            return
+        
+        # Získame ID objednaného jedla (môže byť číslo alebo písmeno ako 'X')
+        ordered_menu_id = getattr(lunch, 'ordered_meal', None)
+        
+        if not ordered_menu_id or ordered_menu_id == 'X':
+            print("\n❌ Žiadny objednaný obed")
+            return
+        
+        # Získame zoznam menu
+        menus = getattr(lunch, 'menus', [])
+        
+        # Nájdeme objednané jedlo - hľadáme podľa number (môže byť číslo alebo písmeno)
+        ordered_item = None
+        for menu in menus:
+            menu_number = str(getattr(menu, 'number', ''))
+            if menu_number == str(ordered_menu_id):
+                ordered_item = menu
+                break
+        
+        if not ordered_item:
+            # Špeciálna logika pre pondelok (02.03.2026) - ordered_menu_id='X'
+            # V zozname menu sa 'X' zobrazuje ako 'None'
+            if ordered_menu_id == 'X':
+                for menu in menus:
+                    menu_number = str(getattr(menu, 'number', ''))
+                    # Hľadáme menu s number='None' alebo prázdne string
+                    if menu_number == 'None' or menu_number == '':
+                        ordered_item = menu
+                        break
+            
+            if not ordered_item:
+                print(f"\n❌ Objednané jedlo s ID '{ordered_menu_id}' nebolo nájdené v zozname menu.")
+                print(f"   Dostupné menu: {[str(getattr(m, 'number', 'N/A')) for m in menus]}")
+                return
+        
+        meal_name = getattr(ordered_item, 'name', 'Neznáme')
+        meal_type = lunch.meal_type.name if hasattr(lunch, 'meal_type') and lunch.meal_type else "N/A"
+        
+        print(f"\n🍽️ Typ: {meal_type}")
+        print(f"🍲 Jedlo: {meal_name}")
+        
+        # Pokúsime sa zobrazit číslo menu pre lepšiu čitateľnosť
+        if ordered_menu_id != 'X':
+            print(f"✅ Objednané jedlo: {ordered_menu_id}")
+            
+    except Exception as e:
+        print(f"\n❌ Nepodarilo sa načítať objednaný obed. (Detail: {e})")
+        import traceback
+        traceback.print_exc()
+        return
+
 def main():
     parser = argparse.ArgumentParser(description='EduPage Monitor')
     parser.add_argument('--date', type=str, help='Dátum vo formáte DD.MM.YYYY (napr. 20.02.2026)')
+    parser.add_argument('--lunch', action='store_true', help='Zobraziť objednaný obed pre daný dátum (použi --date na zadanie dátumu)')
     args = parser.parse_args()
 
     target_date = None
@@ -233,9 +313,17 @@ def main():
                         edupage.switch_to_child(int(cid))
                         edupage.data['userid'] = str(cid)
                         
-                        show_timetable(edupage, student_id=cid, target_date=target_date)
-                        show_grades(edupage)
-                        show_notifications(edupage)
+                        # Ak je zadaný --lunch, zobrazíme iba obed
+                        if args.lunch:
+                            if not args.date:
+                                print("Chyba: Dátum potrebný pri použití --lunch. Použite: --lunch --date DD.MM.YYYY")
+                                continue
+                            show_my_lunch(edupage, cid, target_date)
+                        else:
+                            # Bez --lunch zobrazíme rozvrh, známky a oznamy
+                            show_timetable(edupage, student_id=cid, target_date=target_date)
+                            show_grades(edupage)
+                            show_notifications(edupage)
                     except Exception as child_e:
                         print(f"Chyba pri dieťati {cid}: {child_e}")
                     finally:
